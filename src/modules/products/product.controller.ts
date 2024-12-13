@@ -1,91 +1,50 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { ResponseData } from 'src/global/globalClass';
-import { HttpMessage, HttpStatus } from 'src/global/globalEnum';
-import { Product } from 'src/models/product.model';
-import { ProductDto } from './dto/productDto';
+import { CreateProductDto } from './dto/create-product.dto';
+import { ProductEntity } from './entities/product.entity';
+import { QueryProductDto } from './dto/query-product.dto';
+import { JwtAuthGuard } from 'src/common/jwt-auth.guard';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  getProducts(): ResponseData<Product[]> {
-    try {
-      return new ResponseData<Product[]>(
-        this.productService.getProducts(),
-        HttpStatus.SUCCESS,
-        HttpMessage.SUCCESS,
-      );
-    } catch (error) {
-      return new ResponseData<Product[]>(
-        [],
-        HttpStatus.ERROR,
-        HttpMessage.ERROR,
-      );
+  async getProducts(@Query() query: QueryProductDto) {
+    const { page, limit } = query;
+
+    if (!page || !limit) {
+      throw new BadRequestException('Page and limit are required');
     }
+
+    return await this.productService.getProducts(query);
   }
 
   @Post()
-  createProduct(@Body() productDto: ProductDto): ResponseData<Product> {
-    try {
-      return new ResponseData<Product>(
-        this.productService.createProduct(productDto),
-        HttpStatus.SUCCESS,
-        HttpMessage.SUCCESS,
-      );
-    } catch (error) {
-      return new ResponseData<Product>(
-        null,
-        HttpStatus.ERROR,
-        HttpMessage.ERROR,
-      );
-    }
+  async createProduct(
+    @Body() createProductDto: CreateProductDto,
+  ): Promise<ProductEntity> {
+    return this.productService.createProduct(createProductDto);
   }
 
-  @Get('/:id')
-  detailProduct(@Param('id') id: number): ResponseData<Product> {
-    try {
-      return new ResponseData<Product>(
-        this.productService.detailProduct(id),
-        HttpStatus.SUCCESS,
-        HttpMessage.SUCCESS,
-      );
-    } catch (error) {
-      return new ResponseData<Product>(
-        null,
-        HttpStatus.ERROR,
-        HttpMessage.ERROR,
-      );
-    }
-  }
-
-  @Put('/:id')
-  updateProduct(
-    @Body() productDto: ProductDto,
-    @Param('id') id: number,
-  ): ResponseData<string> {
-    return new ResponseData<string>(
-      this.productService.updateProduct(productDto, id),
-      HttpStatus.SUCCESS,
-      HttpMessage.SUCCESS,
-    );
-  }
-
-  @Delete('/:id')
-  deleteProduct(@Param('id') id: number): ResponseData<boolean> {
-    return new ResponseData<boolean>(
-      this.productService.deleteProduct(id),
-      HttpStatus.SUCCESS,
-      HttpMessage.SUCCESS,
-    );
+  @Put(':id')
+  async updateProduct(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProductDto: UpdateProductDto,
+  ): Promise<ProductEntity> {
+    return this.productService.updateProduct(id, updateProductDto);
   }
 }

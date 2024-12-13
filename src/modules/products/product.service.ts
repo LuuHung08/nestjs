@@ -1,60 +1,64 @@
-import { Injectable } from '@nestjs/common';
-import { Product } from 'src/models/product.model';
-import { ProductDto } from './dto/productDto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Like, Repository } from 'typeorm';
+import { ProductEntity } from './entities/product.entity';
+import { CreateProductDto } from './dto/create-product.dto';
+import { ResponseData } from 'src/common/meta-response';
+import { QueryProductDto } from './dto/query-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
-  private products: Product[] = [
-    { id: 1, categoryId: 1, productName: 'Product 1', price: 100 },
-    { id: 2, categoryId: 2, productName: 'Product 2', price: 200 },
-    { id: 3, categoryId: 3, productName: 'Product 3', price: 300 },
-  ];
+  constructor(
+    @InjectRepository(ProductEntity)
+    private readonly productRepository: Repository<ProductEntity>,
+  ) {}
 
-  getProducts(): Product[] {
-    return this.products;
-  }
+  async getProducts(
+    query: QueryProductDto,
+  ): Promise<ResponseData<ProductEntity>> {
+    const { page, limit, name } = query;
 
-  createProduct(productDto: ProductDto): Product {
-    const product: Product = {
-      id: Math.random(),
-      ...productDto,
+    const whereCondition = name ? { name: Like(`%${name}%`) } : {};
+
+    const [products, total] = await this.productRepository.findAndCount({
+      where: whereCondition,
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'ASC' },
+    });
+
+    const meta = {
+      total,
+      page,
+      limit,
     };
-    this.products.push(product);
-    return product;
+
+    return new ResponseData(products, meta);
   }
 
-  detailProduct(id: number): Product[] {
-    const findProducts = this.products.find(
-      (product) => product.id === Number(id),
-    );
-
-    return [findProducts];
+  async createProduct(
+    createProductDto: CreateProductDto,
+  ): Promise<ProductEntity> {
+    const newProduct = this.productRepository.create(createProductDto);
+    return this.productRepository.save(newProduct);
   }
 
-  updateProduct(productDto: ProductDto, id: number): string {
-    console.log('productDto', productDto);
-    if (!id) throw new Error('ID is required');
-
-    const index = this.products.findIndex(
-      (product) => product.id === Number(id),
-    );
-
-    this.products[index].price = productDto.price;
-    this.products[index].productName = productDto.productName;
-    this.products[index].categoryId = productDto.categoryId;
-
-    return 'Update success';
-  }
-
-  deleteProduct(id: number): boolean {
-    const index = this.products.findIndex(
-      (product) => product.id === Number(id),
-    );
-    if (index !== -1) {
-      this.products.splice(index, 1);
-      return true;
+  async updateProduct(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<ProductEntity> {
+    if (!id) {
+      throw new NotFoundException(`Id is required`);
     }
 
-    return false;
+    const product = await this.productRepository.findOne({ where: { id } });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    Object.assign(product, updateProductDto);
+    return this.productRepository.save(product);
   }
 }
