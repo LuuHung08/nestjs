@@ -8,20 +8,19 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductEntity } from './entities/product.entity';
 import { QueryProductDto } from './dto/query-product.dto';
-import { JwtAuthGuard } from 'src/common/jwt-auth.guard';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Authenticated } from 'src/common/decorators/authenticated.decorator';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @Authenticated()
   @Get()
   async getProducts(@Query() query: QueryProductDto) {
     const { page, limit } = query;
@@ -33,18 +32,18 @@ export class ProductController {
     return await this.productService.getProducts(query);
   }
 
+  @Authenticated()
   @Post()
-  async createProduct(
-    @Body() createProductDto: CreateProductDto,
-  ): Promise<ProductEntity> {
-    return this.productService.createProduct(createProductDto);
+  async createProduct(@Body() body: CreateProductDto): Promise<ProductEntity> {
+    return this.productService.createProduct(body);
   }
 
+  @Authenticated()
   @Put(':id')
   async updateProduct(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateProductDto: UpdateProductDto,
+    @Body() body: UpdateProductDto,
   ): Promise<ProductEntity> {
-    return this.productService.updateProduct(id, updateProductDto);
+    return this.productService.updateProduct(id, body);
   }
 }

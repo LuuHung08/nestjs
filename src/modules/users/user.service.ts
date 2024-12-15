@@ -19,6 +19,13 @@ export class UsersService {
     return this.userRepository.find();
   }
 
+  async getUserWithProducts(userId: number): Promise<UserEntity> {
+    return this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['products'],
+    });
+  }
+
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
     const user = this.userRepository.create(createUserDto);
     return this.userRepository.save(user);

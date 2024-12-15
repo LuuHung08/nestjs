@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { ProductEntity } from 'src/modules/products/entities/product.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('users')
 export class UserEntity {
@@ -13,4 +14,7 @@ export class UserEntity {
 
   @Column()
   password: string;
+
+  @OneToMany(() => ProductEntity, (product) => product.user)
+  products: ProductEntity[];
 }

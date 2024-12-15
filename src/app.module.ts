@@ -11,6 +11,7 @@ import { validateAppConfig } from './app.config';
 import { UserEntity } from './modules/users/entities/user.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformResponseInterceptor } from './common/interceptor';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { TransformResponseInterceptor } from './common/interceptor';
     ProductModule,
     UserModule,
     AuthModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [

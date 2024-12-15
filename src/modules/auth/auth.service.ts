@@ -2,13 +2,13 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { hash, compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from '../users/entities/user.entity';
+import { AuthDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +18,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(username: string, password: string): Promise<UserEntity> {
+  async register(body: AuthDto): Promise<UserEntity> {
+    const { username, password } = body;
     if (!username || username.trim() === '') {
       throw new BadRequestException('Username is required');
     }
@@ -40,10 +41,8 @@ export class AuthService {
     return this.userRepository.save(user);
   }
 
-  async login(
-    username: string,
-    password: string,
-  ): Promise<{ accessToken: string }> {
+  async login(body: AuthDto): Promise<{ accessToken: string }> {
+    const { username, password } = body;
     const user = await this.userRepository.findOne({ where: { username } });
 
     if (!user) {
@@ -52,7 +51,7 @@ export class AuthService {
 
     const isPasswordValid = await compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Password is incorrect');
+      throw new BadRequestException('Password is incorrect');
     }
 
     const payload = { username: user.username, sub: user.id };

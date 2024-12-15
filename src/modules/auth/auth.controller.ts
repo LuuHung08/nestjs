@@ -1,24 +1,24 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthDto } from './dto/auth.dto';
+import { ApiResponse } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(
-    @Body('username') username: string,
-    @Body('password') password: string,
-  ) {
-    return this.authService.register(username, password);
+  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  async register(@Body() body: AuthDto) {
+    return this.authService.register(body);
   }
 
   @Post('login')
-  async login(
-    @Body('username') username: string,
-    @Body('password') password: string,
-  ) {
-    const result = await this.authService.login(username, password);
+  @ApiResponse({ status: 201, description: 'User login successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  async login(@Body() body: AuthDto) {
+    const result = await this.authService.login(body);
     return {
       message: 'Login successful',
       accessToken: result.accessToken,

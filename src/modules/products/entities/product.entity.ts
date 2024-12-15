@@ -1,10 +1,13 @@
+import { UserEntity } from 'src/modules/users/entities/user.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
+import { ProductInformationEnum } from '../interface/product-info';
 
 @Entity('products')
 export class ProductEntity {
@@ -28,4 +31,10 @@ export class ProductEntity {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  @ManyToOne(() => UserEntity, (user) => user.products)
+  user: UserEntity;
+
+  @Column('text', { default: ProductInformationEnum.CLOTHES })
+  type: string;
 }
