@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtAuthGuard } from './jwt-auth.guard'; // Giả sử bạn đã tạo guard JWT của mình
 import { matchRoles } from './roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
