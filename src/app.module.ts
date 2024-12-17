@@ -9,8 +9,8 @@ import { validateAppConfig } from './app.config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformResponseInterceptor } from './common/interceptor';
 import { HealthModule } from './modules/health/health.module';
-import { ProductSocketModule } from './modules/sockets/products/product.module';
 import { DatabaseModule } from './database/database.module';
+import { CommentsModule } from './modules/comments/comment.module';
 
 @Module({
   imports: [
@@ -23,7 +23,7 @@ import { DatabaseModule } from './database/database.module';
     UserModule,
     AuthModule,
     HealthModule,
-    ProductSocketModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [

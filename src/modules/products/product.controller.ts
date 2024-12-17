@@ -15,6 +15,7 @@ import { ProductEntity } from './entities/product.entity';
 import { QueryProductDto } from './dto/query-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Authenticated } from 'src/common/decorators/authenticated.decorator';
+import { ResponseData } from 'src/common/meta-response';
 
 @Controller('products')
 export class ProductController {
@@ -22,7 +23,9 @@ export class ProductController {
 
   @Authenticated()
   @Get()
-  async getProducts(@Query() query: QueryProductDto) {
+  async getProducts(
+    @Query() query: QueryProductDto,
+  ): Promise<ResponseData<ProductEntity>> {
     const { page, limit } = query;
 
     if (!page || !limit) {

@@ -22,6 +22,9 @@ export class AppConfig {
 
   @IsString()
   readonly JWT_SECRET: string;
+
+  @IsString()
+  readonly KEY_CONTENT: string;
 }
 
 export function validateAppConfig(config: Record<string, unknown>) {
