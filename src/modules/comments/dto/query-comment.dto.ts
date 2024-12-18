@@ -31,7 +31,7 @@ export class QueryCommentsDto {
   vid?: string;
 
   @ApiProperty({
-    example: 'ABC',
+    example: 'key_content',
     description: 'Key content search for',
   })
   @IsNotEmpty()

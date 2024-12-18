@@ -6,6 +6,7 @@ import { SwaggerModule } from '@nestjs/swagger';
 import { validationPipe } from './config/validation.pipe';
 import { corsConfig } from './config/cors.config';
 import { swaggerConfig } from './config/swagger.config';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,8 @@ async function bootstrap() {
   app.useGlobalPipes(validationPipe);
 
   app.enableCors(corsConfig);
+
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   const documentFactory = () =>
     SwaggerModule.createDocument(app, swaggerConfig);

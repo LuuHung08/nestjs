@@ -11,6 +11,7 @@ import { TransformResponseInterceptor } from './common/interceptor';
 import { HealthModule } from './modules/health/health.module';
 import { DatabaseModule } from './database/database.module';
 import { CommentsModule } from './modules/comments/comment.module';
+import { VideoCallModule } from './modules/sockets/socket.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CommentsModule } from './modules/comments/comment.module';
     AuthModule,
     HealthModule,
     CommentsModule,
+    VideoCallModule,
   ],
   controllers: [AppController],
   providers: [

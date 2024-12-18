@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { SocketGateway } from './socket.gateway';
+import { VideoCallGateway } from './socket.gateway';
 
 @Module({
-  providers: [SocketGateway],
+  providers: [VideoCallGateway],
 })
-export class SocketModule {}
+export class VideoCallModule {}

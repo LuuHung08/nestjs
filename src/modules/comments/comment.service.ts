@@ -37,12 +37,23 @@ export class CommentsService {
       parent: IsNull(),
     };
 
-    const [products, total] = await this.commentsRepository.findAndCount({
+    const [comments, total] = await this.commentsRepository.findAndCount({
       where: whereCondition,
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },
       relations: ['comments'],
+    });
+
+    for (const comment of comments) {
+      comment['count_comments'] = comment.comments.length;
+    }
+
+    const commentsWithFirstChild = comments.map((comment) => {
+      if (comment.comments && comment.comments.length > 0) {
+        comment.comments = [comment.comments[0]];
+      }
+      return comment;
     });
 
     const meta = {
@@ -51,10 +62,10 @@ export class CommentsService {
       limit,
     };
 
-    return new ResponseData(products, meta);
+    return new ResponseData(commentsWithFirstChild, meta);
   }
 
-  async createComments(body: CreateCommentsDto): Promise<CommentsEntity> {
+  async create(body: CreateCommentsDto): Promise<CommentsEntity> {
     const { vid, key_content, content, username, avatar, parent_id } = body;
     if (!vid || !key_content)
       throw new BadRequestException('vid and key_content are required');
@@ -72,8 +83,9 @@ export class CommentsService {
     });
     if (parent_id) {
       const parentComment = await this.commentsRepository.findOne({
-        where: { id: parent_id, vid },
+        where: { id: parent_id },
       });
+
       if (!parentComment) {
         throw new BadRequestException('Parent comment not found');
       }

@@ -4,4 +4,5 @@ export const corsConfig: CorsOptions = {
   origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // Hỗ trợ gửi cookie
+  allowedHeaders: ['Content-Type'],
 };

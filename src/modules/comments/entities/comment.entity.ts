@@ -32,6 +32,9 @@ export class CommentsEntity {
   @Column({ nullable: true })
   avatar: string;
 
+  @Column({ nullable: true })
+  count_comments: number;
+
   @Column({ nullable: true }) // Cột parent_id sẽ lưu ID của comment cha
   parent_id: number;
 

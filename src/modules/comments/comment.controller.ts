@@ -40,9 +40,7 @@ export class CommentsController {
 
   @Authenticated()
   @Post()
-  async createComments(
-    @Body() body: CreateCommentsDto,
-  ): Promise<CommentsEntity> {
-    return this.commentsService.createComments(body);
+  async create(@Body() body: CreateCommentsDto): Promise<CommentsEntity> {
+    return this.commentsService.create(body);
   }
 }
