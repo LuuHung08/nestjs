@@ -12,6 +12,7 @@ import { HealthModule } from './modules/health/health.module';
 import { DatabaseModule } from './database/database.module';
 import { CommentsModule } from './modules/comments/comment.module';
 import { VideoCallModule } from './modules/sockets/socket.module';
+import { DbHealthModule } from './modules/db-health/db-health.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { VideoCallModule } from './modules/sockets/socket.module';
     HealthModule,
     CommentsModule,
     VideoCallModule,
+    DbHealthModule,
   ],
   controllers: [AppController],
   providers: [

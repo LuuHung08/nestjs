@@ -4,6 +4,7 @@ import {
   WebSocketServer,
   SubscribeMessage,
   MessageBody,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
@@ -13,68 +14,89 @@ import { Server, Socket } from 'socket.io';
   },
 })
 export class VideoCallGateway {
-  private logger = new Logger('SocketGateway');
+  private logger = new Logger('VideoCallGateway');
 
-  // Khi có người dùng kết nối
+  @WebSocketServer() server: Server;
+
+  // Khi người dùng kết nối
   handleConnection(client: Socket) {
-    this.logger.log(`User connected: ${client.id}`);
-
-    // Thêm sự kiện reconnection
-    client.on('reconnect', (attemptNumber: number) => {
-      this.logger.log(
-        `User ${client.id} reconnected, attempt number: ${attemptNumber}`,
-      );
-    });
-
-    // Thêm sự kiện lỗi
-    client.on('error', (error: any) => {
-      this.logger.error(`Error for client ${client.id}: ${error}`);
-    });
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
   // Khi người dùng ngắt kết nối
   handleDisconnect(client: Socket) {
-    this.logger.log(`User disconnected: ${client.id}`);
+    this.logger.log(`Client disconnected: ${client.id}`);
+    const rooms = client.rooms;
+    rooms.forEach((roomId) => {
+      // Phát đi sự kiện 'userLeft' cho các client khác trong cùng room
+      client.to(roomId).emit('userLeft', { userId: client.id });
+    });
   }
 
-  // Khi có lỗi xảy ra trong Gateway
-  handleError(client: Socket, error: any) {
-    this.logger.error(`Error occurred for client ${client.id}: ${error}`);
+  // Người dùng tham gia room
+  @SubscribeMessage('joinRoom')
+  handleJoinRoom(
+    @MessageBody() roomId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.join(roomId);
+    this.logger.log(`Client ${client.id} joined room ${roomId}`);
+    // Thông báo cho các thành viên khác trong room
+    client.to(roomId).emit('userJoined', { userId: client.id });
   }
 
-  // Khi người dùng không thể kết nối
-  handleReconnect(client: Socket, attemptNumber: number) {
-    this.logger.log(
-      `User ${client.id} failed to reconnect after attempt ${attemptNumber}`,
-    );
+  // Người dùng rời room
+  @SubscribeMessage('leaveRoom')
+  handleLeaveRoom(
+    @MessageBody() roomId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.leave(roomId);
+    this.logger.log(`Client ${client.id} left room ${roomId}`);
+    // Thông báo cho các thành viên khác trong room
+    client.to(roomId).emit('userLeft', { userId: client.id });
   }
 
-  @WebSocketServer() server: Server;
-
+  // Xử lý sự kiện offer
   @SubscribeMessage('offer')
   handleOffer(
-    @MessageBody() data: { offer: RTCSessionDescriptionInit },
-    client: Socket,
+    @MessageBody() data: { offer: RTCSessionDescriptionInit; targetId: string },
+    @ConnectedSocket() client: Socket,
   ) {
-    this.logger.log('Received offer:', data);
-    client.broadcast.emit('offer', data);
+    this.logger.log(`Offer from ${client.id} to ${data.targetId}`);
+    // Gửi offer tới client mục tiêu
+    this.server.to(data.targetId).emit('offer', {
+      offer: data.offer,
+      senderId: client.id,
+    });
   }
 
+  // Xử lý sự kiện answer
   @SubscribeMessage('answer')
   handleAnswer(
-    @MessageBody() data: { answer: RTCSessionDescriptionInit },
-    client: Socket,
+    @MessageBody()
+    data: { answer: RTCSessionDescriptionInit; targetId: string },
+    @ConnectedSocket() client: Socket,
   ) {
-    console.log('answer', data);
-    client.broadcast.emit('answer', data);
+    this.logger.log(`Answer from ${client.id} to ${data.targetId}`);
+    // Gửi answer tới client mục tiêu
+    this.server.to(data.targetId).emit('answer', {
+      answer: data.answer,
+      senderId: client.id,
+    });
   }
 
-  @SubscribeMessage('ice-candidate')
+  // Xử lý sự kiện candidate
+  @SubscribeMessage('candidate')
   handleIceCandidate(
-    @MessageBody() data: { candidate: RTCIceCandidate },
-    client: Socket,
+    @MessageBody() data: { candidate: RTCIceCandidate; targetId: string },
+    @ConnectedSocket() client: Socket,
   ) {
-    console.log('ice-candidate', data);
-    client.broadcast.emit('ice-candidate', data);
+    this.logger.log(`Candidate from ${client.id} to ${data.targetId}`);
+    // Gửi ICE candidate tới client mục tiêu
+    this.server.to(data.targetId).emit('candidate', {
+      candidate: data.candidate,
+      senderId: client.id,
+    });
   }
 }

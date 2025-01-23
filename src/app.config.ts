@@ -25,6 +25,15 @@ export class AppConfig {
 
   @IsString()
   readonly KEY_CONTENT: string;
+
+  @IsString()
+  readonly TELEGRAM_BOT_TOKEN: string;
+
+  @IsString()
+  readonly TELEGRAM_API_URL: string;
+
+  @IsString()
+  readonly TELEGRAM_GROUP_CHAT_ID: string;
 }
 
 export function validateAppConfig(config: Record<string, unknown>) {

@@ -1,32 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { ProductEntity } from '../modules/products/entities/product.entity';
-import { UserEntity } from '../modules/users/entities/user.entity';
-import { AppConfig } from 'src/app.config';
-import { CommentsEntity } from 'src/modules/comments/entities/comment.entity';
+import { databaseConfig } from './database.config';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       imports: [],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<AppConfig['DB_HOST']>('DB_HOST'),
-        port: configService.get<AppConfig['DB_PORT']>('DB_PORT'),
-        username: configService.get<AppConfig['DB_USER']>('DB_USER'),
-        password: configService.get<AppConfig['DB_PASSWORD']>('DB_PASSWORD'),
-        database: configService.get<AppConfig['DB_NAME']>('DB_NAME'),
-        // entityPath: [__dirname + '/**/*.entity.{js,ts}'],
-        entities: [ProductEntity, UserEntity, CommentsEntity],
-        synchronize: true,
-        extra: {
-          ssl: {
-            rejectUnauthorized: false,
-          },
-        },
-      }),
+      useFactory: (configService: ConfigService) =>
+        databaseConfig(configService),
     }),
   ],
 })
